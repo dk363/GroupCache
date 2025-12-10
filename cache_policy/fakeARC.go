@@ -229,6 +229,9 @@ func (c *ARCCache) removeLRU(l *list.List) {
 	lru := l.Back()
 	entry := lru.Value.(*ARCEntry)
 	delete(c.cache, entry.key)
+	if c.OnEvcted != nil {
+		c.OnEvcted(entry.key, entry.value)
+	}
 	l.Remove(lru)
 }
 
