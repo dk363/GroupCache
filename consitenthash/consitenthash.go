@@ -11,7 +11,9 @@ import (
 type Hash func([]byte) uint32
 
 type Map struct {
+	// 存放哈希值
 	keys 		[]int
+	// 建立哈希值和value 之间的映射
 	hashMap 	map[int]string
 	hash 		Hash
 	replicas	int
@@ -19,7 +21,6 @@ type Map struct {
 
 func New(replicas int, fn Hash) *Map {
 	m := &Map{
-		keys:		[]int{},
 		hashMap: 	make(map[int]string),
 		replicas: 	replicas,
 		hash:		fn,
@@ -40,7 +41,8 @@ func (m *Map) IsEmpty() bool {
 func (m *Map) Add(keys ...string) {
 	for _, key := range keys {
 		for i := 0; i < m.replicas; i++ {
-			hash := int(m.hash([]byte(strconv.Itoa(i) + key)))
+			hashInput := strconv.Itoa(i) + key
+			hash := int(m.hash([]byte(hashInput)))
 			m.keys = append(m.keys, hash)
 			m.hashMap[hash] = key
 		}
@@ -60,11 +62,12 @@ func (m *Map) Get(key string) string {
 	hash := int(m.hash([]byte(key)))
 
 	// Binary search for appropriate replica
+	// 找到最小的大于等于 hash 的节点
 	idx := sort.Search(len(m.keys), func(i int) bool {return m.keys[i] >= hash})
 
 	if idx == len(m.keys) {
 		idx = 0
 	}
 
-	return m.hashMap[idx]
+	return m.hashMap[m.keys[idx]]
 }
