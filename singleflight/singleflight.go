@@ -12,7 +12,7 @@ type call struct {
 
 type Group struct {
 	mu sync.Mutex
-	m  map[string]*call
+	m  map[string]*call // store the calling function
 }
 
 func (g *Group) Do(key string, fn func() (interface{}, error)) (interface{}, error) {
@@ -23,13 +23,15 @@ func (g *Group) Do(key string, fn func() (interface{}, error)) (interface{}, err
 
 	if c, ok := g.m[key]; ok {
 		g.mu.Unlock()
-		c.wg.Wait()
+		c.wg.Wait() // wait for the front function call and return the value
+		// key stop for Single
 		return c.val, c.err
 	}
 
 	c := new(call)
 	c.wg.Add(1)
 	g.m[key] = c
+	// fn call might a long way
 	g.mu.Unlock()
 
 	c.val, c.err = fn()
