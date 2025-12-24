@@ -1,3 +1,5 @@
+// As a unifed format for data storage and transmission
+// throughout the entire distributed caching system
 package groupcache
 
 import (
